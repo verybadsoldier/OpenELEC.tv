@@ -1,0 +1,131 @@
+From a83c56449aff1ac3998be524988676e5abcae975 Mon Sep 17 00:00:00 2001
+From: verybadsoldier <vbs@springrts.de>
+Date: Thu, 20 Mar 2014 11:52:03 +0100
+Subject: [PATCH] Merge commit '499ca1b2c9bf6d1f95e30d3ce20054d8faa02372' into
+ HEAD
+
+Conflicts:
+	xbmc/guilib/GUIMessage.h
+---
+ xbmc/guilib/GUIMessage.h                  |  7 +++++++
+ xbmc/guilib/GUIWindowManager.cpp          | 16 ++++++++++++++++
+ xbmc/guilib/GUIWindowManager.h            |  3 +++
+ xbmc/music/windows/GUIWindowMusicBase.cpp |  6 ++++++
+ xbmc/powermanagement/PowerManager.cpp     |  3 +++
+ xbmc/video/windows/GUIWindowVideoBase.cpp |  6 ++++++
+ 6 files changed, 41 insertions(+)
+
+diff --git a/xbmc/guilib/GUIMessage.h b/xbmc/guilib/GUIMessage.h
+index eef8232..809dd40 100644
+--- a/xbmc/guilib/GUIMessage.h
++++ b/xbmc/guilib/GUIMessage.h
+@@ -135,6 +135,13 @@
+ 
+ #define GUI_MSG_VALIDITY_CHANGED  44
+ 
++/*!
++ \brief Signal a window that the system is going to suspend or has just woke up
++ */
++#define GUI_MSG_SLEEP         45
++
++#define GUI_MSG_WAKE          46
++
+ #define GUI_MSG_USER         1000
+ 
+ /*!
+diff --git a/xbmc/guilib/GUIWindowManager.cpp b/xbmc/guilib/GUIWindowManager.cpp
+index 744baaa..c9c0ba6 100644
+--- a/xbmc/guilib/GUIWindowManager.cpp
++++ b/xbmc/guilib/GUIWindowManager.cpp
+@@ -1056,3 +1056,19 @@ void CGUIWindowManager::DumpTextureUse()
+   }
+ }
+ #endif
++
++void CGUIWindowManager::OnSleep()
++{
++    CLog::Log(LOGNOTICE, "%s: Going to sleep up", __FUNCTION__);
++
++    CGUIMessage msg(GUI_MSG_SLEEP, 0, 0);
++    this->SendMessage(msg);
++}
++
++void CGUIWindowManager::OnWake()
++{
++    CLog::Log(LOGNOTICE, "%s: Woke up", __FUNCTION__);
++
++    CGUIMessage msg(GUI_MSG_WAKE, 0, 0);
++    this->SendMessage(msg);
++}
+diff --git a/xbmc/guilib/GUIWindowManager.h b/xbmc/guilib/GUIWindowManager.h
+index 0654996..21fb2da 100644
+--- a/xbmc/guilib/GUIWindowManager.h
++++ b/xbmc/guilib/GUIWindowManager.h
+@@ -142,6 +142,9 @@ public:
+ #ifdef _DEBUG
+   void DumpTextureUse();
+ #endif
++  void OnSleep();
++  void OnWake();
++
+ private:
+   void RenderPass() const;
+ 
+diff --git a/xbmc/music/windows/GUIWindowMusicBase.cpp b/xbmc/music/windows/GUIWindowMusicBase.cpp
+index 0c94109..5fe68cc 100644
+--- a/xbmc/music/windows/GUIWindowMusicBase.cpp
++++ b/xbmc/music/windows/GUIWindowMusicBase.cpp
+@@ -233,6 +233,12 @@ bool CGUIWindowMusicBase::OnMessage(CGUIMessage& message)
+         }
+       }
+     }
++  case GUI_MSG_SLEEP:
++    m_musicdatabase.Close();
++    break;
++  case GUI_MSG_WAKE:
++    m_musicdatabase.Open();
++    break;
+   }
+   return CGUIMediaWindow::OnMessage(message);
+ }
+diff --git a/xbmc/powermanagement/PowerManager.cpp b/xbmc/powermanagement/PowerManager.cpp
+index 590a887..4e77e29 100644
+--- a/xbmc/powermanagement/PowerManager.cpp
++++ b/xbmc/powermanagement/PowerManager.cpp
+@@ -248,6 +248,7 @@ void CPowerManager::OnSleep()
+   g_application.StopShutdownTimer();
+   g_application.StopScreenSaverTimer();
+   g_application.CloseNetworkShares();
++  g_windowManager.OnSleep();
+   CAEFactory::Suspend();
+ }
+ 
+@@ -255,6 +256,8 @@ void CPowerManager::OnWake()
+ {
+   CLog::Log(LOGNOTICE, "%s: Running resume jobs", __FUNCTION__);
+ 
++  g_windowManager.OnWake();
++
+   // reset out timers
+   g_application.ResetShutdownTimers();
+ 
+diff --git a/xbmc/video/windows/GUIWindowVideoBase.cpp b/xbmc/video/windows/GUIWindowVideoBase.cpp
+index 9bbd897..acec92d 100644
+--- a/xbmc/video/windows/GUIWindowVideoBase.cpp
++++ b/xbmc/video/windows/GUIWindowVideoBase.cpp
+@@ -239,6 +239,12 @@ bool CGUIWindowVideoBase::OnMessage(CGUIMessage& message)
+   case GUI_MSG_SEARCH:
+     OnSearch();
+     break;
++  case GUI_MSG_SLEEP:
++    m_database.Close();
++    break;
++  case GUI_MSG_WAKE:
++    m_database.Open();
++    break;
+   }
+   return CGUIMediaWindow::OnMessage(message);
+ }
+-- 
+1.8.3.msysgit.0
+
