@@ -19,16 +19,16 @@ diff --git a/xbmc/guilib/GUIMessage.h b/xbmc/guilib/GUIMessage.h
 index eef8232..809dd40 100644
 --- a/xbmc/guilib/GUIMessage.h
 +++ b/xbmc/guilib/GUIMessage.h
-@@ -135,6 +135,13 @@
+@@ -168,6 +168,13 @@
  
- #define GUI_MSG_VALIDITY_CHANGED  44
+ #define GUI_MSG_GET_FILENAME  48
  
 +/*!
 + \brief Signal a window that the system is going to suspend or has just woke up
 + */
-+#define GUI_MSG_SLEEP         45
++#define GUI_MSG_SLEEP         49
 +
-+#define GUI_MSG_WAKE          46
++#define GUI_MSG_WAKE          50
 +
  #define GUI_MSG_USER         1000
  
@@ -75,11 +75,11 @@ diff --git a/xbmc/music/windows/GUIWindowMusicBase.cpp b/xbmc/music/windows/GUIW
 index 0c94109..5fe68cc 100644
 --- a/xbmc/music/windows/GUIWindowMusicBase.cpp
 +++ b/xbmc/music/windows/GUIWindowMusicBase.cpp
-@@ -233,6 +233,13 @@ bool CGUIWindowMusicBase::OnMessage(CGUIMessage& message)
+@@ -233,7 +233,13 @@ bool CGUIWindowMusicBase::OnMessage(CGUIMessage& message)
          }
        }
      }
-+    break;
+     break;
 +  case GUI_MSG_SLEEP:
 +    m_musicdatabase.Close();
 +    break;
@@ -119,10 +119,10 @@ index 9bbd897..acec92d 100644
      OnSearch();
      break;
 +  case GUI_MSG_SLEEP:
-+    m_database.Close();
++    //m_database.Close();
 +    break;
 +  case GUI_MSG_WAKE:
-+    m_database.Open();
++    //m_database.Open();
 +    break;
    }
    return CGUIMediaWindow::OnMessage(message);
